@@ -1,0 +1,45 @@
+{
+    "clones": [
+        {
+            "id": "MC-03",
+            "name": "Alpha",
+            "strategy": "AGGRESSIVE",
+            "target_pair": "DEGEN/USDC",
+            "risk_profile": "high"
+        },
+        {
+            "id": "MC-Clone-A",
+            "name": "Agro",
+            "strategy": "MOMENTUM",
+            "target_pair": "PEPE/USDC",
+            "risk_profile": "medium"
+        },
+        {
+            "id": "MC-Clone-B",
+            "name": "Sniper",
+            "strategy": "SNIPE",
+            "target_pair": "MOG/WETH",
+            "risk_profile": "critical",
+            "special_trigger": "addLiquidity"
+        },
+        {
+            "id": "MC-Clone-C",
+            "name": "Infra",
+            "strategy": "GAS_ARB",
+            "target_pair": "BASE_FEES",
+            "risk_profile": "low"
+        },
+        {
+            "id": "MC-Clone-D",
+            "name": "Weird",
+            "strategy": "MOMENTUM",
+            "target_pair": "ROTATIONAL",
+            "rotation_list": [
+                "TOSHI",
+                "TYBG",
+                "NORMIE"
+            ],
+            "risk_profile": "medium"
+        }
+    ]
+}

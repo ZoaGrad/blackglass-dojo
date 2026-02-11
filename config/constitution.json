@@ -1,0 +1,17 @@
+{
+    "imperatives": {
+        "growth": "maximize ΔCapital per unit Time",
+        "stealth": "minimize pattern_predictability_score",
+        "survival": "drawdown < 5% per rolling_24h"
+    },
+    "weights": {
+        "growth": 0.4,
+        "stealth": 0.3,
+        "survival": 0.3
+    },
+    "apoptosis_triggers": [
+        "constitution_violation",
+        "sentinel_lockdown_breach",
+        "wallet_balance < 2%_seed"
+    ]
+}

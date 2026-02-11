@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.cursor/
+
+# Data & Results
+data/
+results.json
+output.txt
+
+# Supabase Local
+supabase/.temp/
+supabase/functions/.temp/
