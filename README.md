@@ -1,5 +1,5 @@
 # Blackglass Dojo: 0.05V Interdiction Engine
-## ΔΩ-INTELLIGENCE: 0xDOJO_CORE | STATUS: BATTLE_HARDENED
+## INTELLIGENCE: 0xDOJO_CORE | STATUS: BATTLE_HARDENED
 
 The **Blackglass Dojo** is the execution and adversarial simulation layer of the Blackglass Continuum. It is where the **0.05V Standard** is enforced through real-time interdiction and semantic consistency checks.
 
