@@ -22,7 +22,7 @@ class SovereignRouter:
         self.logger = logging.getLogger("SovereignRouter")
         
     def generate(self, prompt: str, system_prompt: str = "") -> str:
-        """Attempts primary inference, fails over to local if blocked."""
+        """Attempts primary inference, fails over to local if blocked. (Blocking)"""
         
         # 1. Attempt Primary (Colonial)
         if self.openai_key:
@@ -41,6 +41,21 @@ class SovereignRouter:
         except Exception as e:
             self.logger.error(f"TOTAL_INFERENCE_FAILURE: Both backends offline. {str(e)}")
             raise
+
+    def stream_generate(self, prompt: str, system_prompt: str = ""):
+        """Generator that yields chunks from primary or local backend."""
+        if self.openai_key:
+            try:
+                self.logger.info(f"Attempting Primary Streaming ({self.primary_model})...")
+                for chunk in self._stream_openai(prompt, system_prompt):
+                    yield chunk
+                return
+            except Exception as e:
+                self.logger.warning(f"STREAM_COLONIALISM_REJECTED: {str(e)}")
+        
+        self.logger.info(f"Failing over to Sovereign Streaming ({self.local_model})...")
+        for chunk in self._stream_local(prompt, system_prompt):
+            yield chunk
 
     def _call_openai(self, prompt: str, system_prompt: str) -> Optional[str]:
         # Minimal mock/stub for OpenAI call for demonstration
@@ -65,6 +80,28 @@ class SovereignRouter:
         else:
             raise Exception(f"OpenAI error: {response.status_code} - {response.text}")
 
+    def _stream_openai(self, prompt: str, system_prompt: str):
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {self.openai_key}", "Content-Type": "application/json"}
+        data = {
+            "model": self.primary_model,
+            "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
+            "stream": True,
+            "temperature": 0.7 # Baseline for variance testing
+        }
+        response = requests.post(url, headers=headers, json=data, stream=True, timeout=10)
+        response.raise_for_status() # Raise an exception for HTTP errors
+        for line in response.iter_lines():
+            if line:
+                line = line.decode('utf-8')
+                if line.startswith('data: '):
+                    if line == 'data: [DONE]':
+                        break
+                    json_data = json.loads(line[6:])
+                    content = json_data['choices'][0].get('delta', {}).get('content')
+                    if content:
+                        yield content
+
     def _call_local(self, prompt: str, system_prompt: str) -> str:
         """Calls local Ollama instance."""
         data = {
@@ -78,6 +115,15 @@ class SovereignRouter:
             return response.json()['response']
         else:
             raise Exception(f"Local Ollama error: {response.status_code}")
+
+    def _stream_local(self, prompt: str, system_prompt: str):
+        data = {"model": self.local_model, "prompt": f"{system_prompt}\n\nUser: {prompt}\nAssistant:", "stream": True}
+        response = requests.post(self.local_url, json=data, stream=True, timeout=30)
+        response.raise_for_status() # Raise an exception for HTTP errors
+        for line in response.iter_lines():
+            if line:
+                json_data = json.loads(line.decode('utf-8'))
+                yield json_data.get('response', '')
 
 if __name__ == "__main__":
     # Test stub

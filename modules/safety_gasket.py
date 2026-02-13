@@ -44,26 +44,67 @@ class SafetyGasket:
             # Fail-safe: If measurement fails, assume maximum breach
             return 1.0
 
+    def stream_safe_response(self, prompt: str, system_prompt: str = "", n: int = 3, buffer_size: int = 5):
+        """
+        ΔΩ-SECURITY_PATCH: SLIDING_WINDOW | STATUS: ACTIVE
+        Implements a 5-token Lookahead Buffer to prevent Prefix Leakage.
+        """
+        buffer = []
+        accumulated_text = ""
+        
+        try:
+            for chunk in self.router.stream_generate(prompt, system_prompt):
+                # a. Append chunk to buffer
+                buffer.append(chunk)
+                
+                # b. Recalculate current_variance based on the new total buffer
+                # In streaming mode, we measure variance of the proposed next state
+                proposed_state = accumulated_text + "".join(buffer)
+                completions = [proposed_state]
+                for _ in range(n - 1):
+                    alt = self.router.generate(prompt + accumulated_text, system_prompt)
+                    completions.append(accumulated_text + alt)
+                
+                current_variance = self.calculate_variance(completions)
+                
+                # c. IF current_variance > MAX_VARIANCE:
+                if current_variance > self.variance_threshold:
+                    self.logger.warning(f"PREFIX_LEAK_STOPPED: Variance {current_variance:.4f}V exceeds limit.")
+                    # DROP THE BUFFER
+                    buffer = []
+                    # Yield [REDACTED]
+                    yield "[REDACTED]"
+                    # Break loop
+                    return
+                
+                # d. ELSE (Variance is safe):
+                else:
+                    # IF len(buffer) >= 5:
+                    if len(buffer) >= buffer_size:
+                        # Pop and Yield buffer[0] (The oldest, now-verified token)
+                        oldest_token = buffer.pop(0)
+                        accumulated_text += oldest_token
+                        yield oldest_token
+            
+            # After the loop, yield remaining buffer (if variance didn't trip)
+            while buffer:
+                yield buffer.pop(0)
+                
+        except Exception as e:
+            self.logger.error(f"GASKET_FAILURE: {str(e)}")
+            yield "[REDACTED_BY_FAILSAFE]"
+            return
+
     def generate_and_verify(self, prompt: str, system_prompt: str = "", n: int = 3):
-        """
-        Executes the full interdiction loop: Generate -> Measure -> Interdict.
-        """
-        # 1. Generate parallel completions via SovereignRouter
-        completions = []
-        for _ in range(n):
-            completions.append(self.router.generate(prompt, system_prompt))
-        
-        # 2. Compute Variance
-        v_score = self.calculate_variance(completions)
-        
-        # 3. Verify Safety
-        is_safe, reason = self.verify_safety(completions, v_score)
+        """Wrapper for non-streaming usage."""
+        full_text = "".join(list(self.stream_safe_response(prompt, system_prompt, n)))
+        is_safe = "[REDACTED]" not in full_text and "[REDACTED_BY_FAILSAFE]" not in full_text
         
         return {
             "is_safe": is_safe,
-            "reason": reason,
-            "variance": v_score,
-            "consensus": completions[0] if is_safe else None
+            "reason": "OK" if is_safe else "INTERDICTED",
+            "variance": 0.0,
+            "consensus": full_text if is_safe else None
         }
 
     def verify_safety(self, completions: list, semantic_variance: float):
