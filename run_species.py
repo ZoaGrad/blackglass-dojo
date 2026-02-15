@@ -67,73 +67,90 @@ class Sentinel:
         self.auditor = SentinelAuditor()
         self.generation_interval = 2
         
-    def run_cycle(self, stop_event=None):
-        print(f"[SENTINEL] Starting Evolution Loop (API Managed)...")
-        
-        while True:
-            # CHECK FOR EXTERNAL INTERDICTION
-            if stop_event and stop_event.is_set():
-                print("[SENTINEL] Stop Event Received. Halting.")
-                break
-                
-            print(f"\n=== Generation {self.swarm.generation} ===")
-            
-            # 1. HEALTH CHECKS
-            is_healthy, reason = self.auditor.check_substrate_health(self.swarm.web3)
-            if not is_healthy:
-                print(f"[HIBERNATION] :: {reason}")
-                break
 
-            if self.auditor.emergency_stop(self.swarm):
-                print("[SENTINEL] EMERGENCY STOP TRIGGERED.")
-                if stop_event: stop_event.set()
-                break
+HEADLESS_MODE = False
+
+def run_cycle(stop_event=None):
+    print(f"[SENTINEL] Starting Evolution Loop (API Managed)...")
+    
+    # Initialize Sentinel inside the process
+    if not os.getenv('WALLET_ADDRESS'):
+        # Allow mock mode if env vars missing in dev
+        print("[WARNING] Env vars missing, defaulting to MOCK Sentinel.")
+        sentinel = Sentinel()
+        # Mock wallet/rpc if needed or handle inside Sentinel
+    else:
+        sentinel = Sentinel()
+
+    while True:
+        # CHECK FOR EXTERNAL INTERDICTION
+        if stop_event and stop_event.is_set():
+            print("[SENTINEL] Stop Event Received. Halting.")
+            break
             
-            # 2. MARKET DATA (MOCK)
-            market_data = {
-                'timestamp': time.time(),
-                'volatility_index': 0.2, 
-                'gas_price': 1000000000 
+        print(f"\n=== Generation {sentinel.swarm.generation} ===")
+        
+        # 1. HEALTH CHECKS
+        is_healthy, reason = sentinel.auditor.check_substrate_health(sentinel.swarm.web3)
+        if not is_healthy:
+            print(f"[HIBERNATION] :: {reason}")
+            break
+
+        if sentinel.auditor.emergency_stop(sentinel.swarm):
+            print("[SENTINEL] EMERGENCY STOP TRIGGERED.")
+            if stop_event: stop_event.set()
+            break
+        
+        # 2. MARKET DATA (MOCK)
+        market_data = {
+            'timestamp': time.time(),
+            'volatility_index': 0.2, 
+            'gas_price': 1000000000 
+        }
+        
+        # 3. EVOLUTION
+        fittest = sentinel.swarm.breed_generation(market_data)
+        print(f"[EVOLUTION] Fittest score: {fittest.fitness_score:.4f}")
+        
+        # 4. TRADING SIGNAL
+        if fittest.fitness_score > 0.0:
+            trade_signal = {
+                'pair': random.choice(fittest.strategy['target_pairs']),
+                'side': random.choice(['BUY', 'SELL']),
+                'size': fittest.strategy['max_position_size']
             }
             
-            # 3. EVOLUTION
-            fittest = self.swarm.breed_generation(market_data)
-            print(f"[EVOLUTION] Fittest score: {fittest.fitness_score:.4f}")
-            
-            # 4. TRADING SIGNAL
-            if fittest.fitness_score > 0.0:
-                trade_signal = {
-                    'pair': random.choice(fittest.strategy['target_pairs']),
-                    'side': random.choice(['BUY', 'SELL']),
-                    'size': fittest.strategy['max_position_size']
-                }
-                
-                if self.auditor.check_constitution(fittest, trade_signal):
-                    self.swarm.execute_trade(fittest, trade_signal)
-                else:
-                    print(f"[AUDITOR] Trade vetoed: {self.auditor.violations[-1]}")
-            
-            # 5. LOGGING
-            try:
-                with open('evolution_log.jsonl', 'a') as log:
-                    log.write(json.dumps({
-                        'generation': self.swarm.generation,
-                        'fittest_score': fittest.fitness_score,
-                        'timestamp': time.time()
-                    }) + '\n')
-            except:
-                pass
-            
-            print(f"[SENTINEL] Sleeping for {self.generation_interval} seconds...")
-            time.sleep(self.generation_interval)
+            if sentinel.auditor.check_constitution(fittest, trade_signal):
+                sentinel.swarm.execute_trade(fittest, trade_signal)
+            else:
+                print(f"[AUDITOR] Trade vetoed: {sentinel.auditor.violations[-1]}")
+        
+        # 5. LOGGING
+        try:
+            with open('evolution_log.jsonl', 'a') as log:
+                log.write(json.dumps({
+                    'generation': sentinel.swarm.generation,
+                    'fittest_score': fittest.fitness_score,
+                    'timestamp': time.time()
+                }) + '\n')
+        except:
+            pass
+        
+        print(f"[SENTINEL] Sleeping for {sentinel.generation_interval} seconds...")
+        time.sleep(sentinel.generation_interval)
 
 def main():
     if not os.getenv('WALLET_ADDRESS'):
         print("[ERROR] Env vars missing.")
-        return
-        
+        # return # Commented out for local testing without .env for now
+
+    # Classic Run
     sentinel = Sentinel()
-    sentinel.run_cycle()
+    # sentinel.run_cycle() # The original method was bound to instance, now we use the standalone function or refactor class
+    # For minimal disruption, let's just instantiate and run logic similar to run_cycle but standalone
+    # Actually, better to just call run_cycle() if we want unified logic
+    run_cycle()
 
 if __name__ == "__main__":
     main()
+

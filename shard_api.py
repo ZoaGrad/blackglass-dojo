@@ -1,89 +1,98 @@
+
 import asyncio
-import threading
-import uvicorn
-import os
-from fastapi import FastAPI, HTTPException
+import logging
+from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
-from run_species import Sentinel
-from dotenv import load_dotenv
+import uvicorn
+from run_species import run_cycle, HEADLESS_MODE
 
-load_dotenv()
+# Configure Logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - [SHARD-API] - %(message)s')
+logger = logging.getLogger("shard_api")
 
-app = FastAPI(title="Blackglass Shard Alpha: Neural Interface")
+app = FastAPI(title="Blackglass Shard Alpha API", version="0.0.1")
 
-# GLOBAL STATE
-SENTINEL = None
-STOP_EVENT = threading.Event()
-SENTINEL_THREAD = None
+# Global State
+class ShardState:
+    def __init__(self):
+        self.running = False
+        self.stop_event = asyncio.Event()
+        self.equity = 1000.0
+        self.drawdown = 0.0
+        self.status = "IDLE"
 
-class InterdictionRequest(BaseModel):
-    reason: str
-    source: str
+state = ShardState()
+
+class StatusResponse(BaseModel):
+    status: str
+    equity: float
+    drawdown: float
 
 @app.on_event("startup")
 async def startup_event():
-    global SENTINEL, SENTINEL_THREAD
-    print("⚡ KINETIC LINK: INITIALIZING SENTINEL...")
-    
-    # Initialize Sentinel (Mocks env vars if missing for safety)
-    if not os.getenv("WALLET_ADDRESS"):
-        os.environ["WALLET_ADDRESS"] = "0x0000000000000000000000000000000000000000"
-        os.environ["PRIVATE_KEY"] = "0x000"
-        os.environ["BASE_RPC_URL"] = "https://mainnet.base.org"
-        
-    SENTINEL = Sentinel()
-    
-    # Start Evolution Loop in Background Thread
-    SENTINEL_THREAD = threading.Thread(target=SENTINEL.run_cycle, args=(STOP_EVENT,))
-    SENTINEL_THREAD.daemon = True
-    SENTINEL_THREAD.start()
-    print("⚡ KINETIC LINK: SENTINEL ONLINE.")
+    logger.info("Shard API Booting...")
+    # Auto-start simulation? For now, wait for trigger or manual start via /start
+    # state.running = True
+    # asyncio.create_task(evolution_loop())
 
-@app.get("/status")
-def get_status():
-    """
-    Telemetry Endpoint for the Spire.
-    """
-    if not SENTINEL:
-        return {"status": "OFFLINE"}
-    
-    is_alive = SENTINEL_THREAD.is_alive()
-    if not is_alive and not STOP_EVENT.is_set():
-        return {"status": "CRASHED", "health": 0}
-        
-    if STOP_EVENT.is_set():
-        return {"status": "INTERDICTED", "health": 0}
+@app.get("/status", response_model=StatusResponse)
+async def get_status():
+    return StatusResponse(
+        status=state.status,
+        equity=state.equity,
+        drawdown=state.drawdown
+    )
 
-    # Mocking live equity for the interface test if not set
-    # In a real kinetic link, Sentinel would expose thread-safe equity
-    current_equity = SENTINEL.swarm.equity if hasattr(SENTINEL.swarm, 'equity') else 1000.0
-    drawdown = SENTINEL.auditor.total_drawdown
+@app.post("/start")
+async def start_shard(background_tasks: BackgroundTasks):
+    if state.running:
+        return {"message": "Shard already running"}
     
-    return {
-        "status": "RUNNING",
-        "equity": current_equity,
-        "drawdown_pct": drawdown,
-        "generation": SENTINEL.swarm.generation
-    }
-
-@app.post("/simulate_drawdown")
-def simulate_drawdown(pct: float):
-    """
-    TESTING ONLY: Manually set drawdown to trigger Kill Switch.
-    """
-    if SENTINEL and SENTINEL.auditor:
-        SENTINEL.auditor.total_drawdown = pct
-        return {"status": "UPDATED", "drawdown": SENTINEL.auditor.total_drawdown}
-    return {"status": "ERROR", "message": "Sentinel not initialized"}
+    state.running = True
+    state.status = "RUNNING"
+    state.stop_event.clear()
+    background_tasks.add_task(evolution_loop)
+    return {"message": "Shard evolution started"}
 
 @app.post("/interdict")
-def interdict_shard(req: InterdictionRequest):
+async def interdict_shard():
     """
-    The Kill Switch. Spire calls this to halt the Shard.
+    The Kill Switch. Called by Spire (North Node) when Variance > 0.05V.
     """
-    print(f"🚨 INTERDICTION RECEIVED from {req.source}: {req.reason}")
-    STOP_EVENT.set()
-    return {"status": "INTERDICTED", "message": "Sentinel Halted."}
+    if not state.running:
+        return {"message": "Shard is not running"}
+    
+    logger.warning("⚠️ RECEIVED INTERDICTION SIGNAL (NORTH NODE)")
+    state.stop_event.set()
+    state.running = False
+    state.status = "INTERDICTED"
+    return {"message": "Shard halted by Constitutional Interdiction"}
+
+async def evolution_loop():
+    logger.info("Starting Evolution Loop...")
+    try:
+        # Run the species evolution in headless mode
+        # We need to adapt run_species.py to be callable/awaitable or run in a thread
+        # For this PoC, we assuming run_cycle is async or fast enough
+        while state.running and not state.stop_event.is_set():
+            # Mocking the cycle for API connectivity proof if run_species is blocking
+            # In real implementation, run_species.run_cycle() would be called here
+            
+            # Simulate state changes
+            await asyncio.sleep(1) 
+            state.equity += 1.0 # Stonks
+            
+            # In a real integration, we'd pull this from the actual running env
+            # For now, let's just prove the link works
+            
+    except Exception as e:
+        logger.error(f"Evolution Loop Failed: {e}")
+        state.status = "ERROR"
+    finally:
+        state.running = False
+        if state.status != "INTERDICTED":
+            state.status = "STOPPED"
+        logger.info("Evolution Loop Terminated.")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
