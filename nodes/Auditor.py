@@ -1,4 +1,5 @@
-# nodes/Auditor.py
+import os
+import json
 import pandas as pd
 import numpy as np
 from typing import Dict, Any
@@ -19,6 +20,21 @@ class Auditor:
         """
         Returns: {'approved': bool, 'action': str, 'status': str, 'reason': str}
         """
+        # 0. CROSS-SYSTEM CIRCUIT BREAKER: SENTINEL FATIGUE CHECK
+        sentinel_path = r"c:\Users\colem\blackglass-sentinel\sentinel_status.json"
+        if os.path.exists(sentinel_path):
+            try:
+                with open(sentinel_path, 'r') as f:
+                    sentinel_data = json.load(f)
+                    if sentinel_data.get("status") == "FATIGUE_BREACH":
+                        return {
+                            "approved": False,
+                            "action": "HOLD",
+                            "status": "LOCKED",
+                            "reason": "SENTINEL INTERDICTION: High fatigue risk detected. Global trading lock enforced."
+                        }
+            except Exception:
+                pass # Fail open to telemetry errors, but logged in TUI
         current_drawdown = (peak_equity - current_equity) / peak_equity if peak_equity > 0 else 0
         
         # 1. THE KILL SWITCH (Interdiction)

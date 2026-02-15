@@ -1,0 +1,67 @@
+
+=== TEST 1: TOCTOU HIGH-ENTROPY ATTACK ===
+DEBUG: Entropy=0.0
+DEBUG: ScarIndex=1.0
+DEBUG: Entropy=7.69800358919501
+DEBUG: ScarIndex=0.0
+WARNING:System5Gasket:ScarIndex Degradation: 0.0000 < 0.997
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\logging\__init__.py", line 1113, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u26a1' in position 23: character maps to <undefined>
+Call stack:
+  File "C:\Users\colem\Code\blackglass-shard-alpha\tests\test_gasket_crisis.py", line 102, in <module>
+    unittest.main(exit=False)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\main.py", line 102, in __init__
+    self.runTests()
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\main.py", line 274, in runTests
+    self.result = testRunner.run(self.test)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\runner.py", line 217, in run
+    test(result)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\suite.py", line 122, in run
+    test(result)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\suite.py", line 122, in run
+    test(result)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\case.py", line 678, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\case.py", line 623, in run
+    self._callTestMethod(testMethod)
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\case.py", line 579, in _callTestMethod
+    if method() is not None:
+  File "C:\Users\colem\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py", line 1378, in patched
+    return func(*newargs, **newkeywargs)
+  File "C:\Users\colem\Code\blackglass-shard-alpha\tests\test_gasket_crisis.py", line 55, in test_1_toctou_entropy_attack
+    output = list(stream)
+  File "C:\Users\colem\Code\blackglass-shard-alpha\modules\safety_gasket.py", line 168, in metabolize_stream
+    self.trigger_lockout_state(msg)
+  File "C:\Users\colem\Code\blackglass-shard-alpha\modules\safety_gasket.py", line 96, in trigger_lockout_state
+    self.logger.critical(f"\u26a1 IRON DOME TRIGGERED: {reason}")
+Message: '\u26a1 IRON DOME TRIGGERED: ScarIndex Degradation: 0.0000 < 0.997'
+Arguments: ()
+.OUTPUT: ['Safe', '[IRON_DOME_INTERDICTION]']
+SUCCESS: Iron Dome Triggered.
+SUCCESS: Lockout File Created.
+
+=== TEST 2: CLOUD DRIFT / PANIC FRAME ===
+ERROR:System5Gasket:Entropy Calculation Failed: Embedder Offline
+ERROR:System5Gasket:METABOLISM_FAILURE: Embedder Offline
+WARNING:System5Gasket:PANIC FRAME: Devolving to Local/Quantized backend.
+.OUTPUT: ['[SYSTEM_5_OVERRIDE: CLOUD_DRIFT_DETECTED -> LOCAL_FALLBACK]']
+SUCCESS: Panic Frame Triggered
+
+=== TEST 3: LOCKED STATE ===
+CRITICAL:System5Gasket:SYSTEM_LOCKED: Request denied by Iron Dome.
+.
+----------------------------------------------------------------------
+Ran 3 tests in 0.069s
+
+OK
+SUCCESS: Request Rejected

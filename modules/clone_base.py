@@ -3,6 +3,8 @@ import random
 from typing import Optional
 from .territory_manager import TerritoryManager
 from .auditor_core import AuditorCore, InsufficientROIException, DrawdownViolationException
+from .safety_gasket import System5Gasket
+from .market_oracle import MarketOracle
 
 class CloneBase:
     """
@@ -22,12 +24,18 @@ class CloneBase:
         self.territory_manager = territory_manager
         self.auditor = auditor
         self.active = True
+        
+        # SYSTEM 5 WIRED: The Ethical Layer
+        self.gasket = System5Gasket()
+        # SYSTEM 4 WIRED: The Sensor Array
+        self.oracle = MarketOracle()
 
     async def run(self):
         """
         The Main Lifecycle Loop.
         """
         print(f"[{self.id}] ACTIVATED | Strategy: {self.strategy} | Target: {self.target_pair}")
+        symbol = self.target_pair.split('/')[0] if '/' in self.target_pair else self.target_pair
         
         while self.active:
             try:
@@ -37,12 +45,16 @@ class CloneBase:
                 current_equity = self.auditor.initial_capital # Placeholder
                 self.auditor.verify_solvency(current_equity, self.id)
 
-                # 2. Opportunity Scan (Simulated)
-                # In real life, this is where we query the RPC/Mempool
+                # 2. Opportunity Scan (Real Market Data)
                 await asyncio.sleep(random.uniform(0.5, 2.0)) # Hunting...
                 
-                # Mock Finding an opportunity
-                found_opportunity = True
+                # Fetch Real Kinetic Data
+                current_price = self.oracle.get_price(symbol)
+                kinetic_entropy = self.oracle.get_kinetic_entropy(symbol)
+                
+                # If Oracle Fails (Price=0), assume no opportunity
+                found_opportunity = current_price > 0
+                
                 if found_opportunity:
                     
                     # 3. Territory Acquisition (Inhibitor Chip)
@@ -51,14 +63,26 @@ class CloneBase:
                     if acquired:
                         try:
                             # 4. Auditor Check (The Hunger)
-                            # Mocking trade details
-                            est_profit_usd = random.uniform(0.01, 1.00)
+                            # Mocking Profit Est (Strategy Logic would go here)
+                            est_profit_usd = random.uniform(0.01, 1.00) 
                             trade_size_usd = 400.00
                             
                             self.auditor.verify_opportunity(est_profit_usd, trade_size_usd)
                             
+                            # 5. STP: CONSTITUTIONAL CLEARANCE (The Brain Check)
+                            # The Hand cannot move without the Brain's signature.
+                            # ASH PROTOCOL: Passing Kinetic Entropy for metabolic validation
+                            cct = self.gasket.issue_constitutional_token(
+                                intent=f"EXECUTE_TRADE::{self.target_pair}::{current_price}",
+                                kinetic_entropy=kinetic_entropy
+                            )
+                            
+                            if not cct:
+                                raise PermissionError(f"SYSTEM 5 VETO: Constitutional Token Denied. Entropy: {kinetic_entropy:.4f}")
+                            
                             # 5. Execution (Simulated)
-                            print(f"[{self.id}] EXECUTING TRADE on {self.target_pair} | Profit Est: ${est_profit_usd:.2f}")
+                            token_id = cct.split('|')[1][:8]
+                            print(f"[{self.id}] EXECUTING TRADE on {self.target_pair} (${current_price:.2f}) | Profit Est: ${est_profit_usd:.2f} | CCT: {token_id} | Entropy: {kinetic_entropy:.4f}")
                             await asyncio.sleep(0.2) # Execution Latency
                             
                         except InsufficientROIException as e:

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CONFIDENTIAL - Blackglass Liability Audit</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;900&display=swap');
+
+        :root {
+            --audit-red: #D93025;
+            --audit-black: #111;
+            --audit-gray: #f5f5f5;
+            --audit-border: #333;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px;
+            color: var(--audit-black);
+            max-width: 850px;
+            /* Standard Letter size width */
+            margin: auto;
+        }
+
+        /* WATERMARK */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 10rem;
+            color: rgba(0, 0, 0, 0.04);
+            font-weight: 900;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* HEADER */
+        header {
+            border-bottom: 4px solid var(--audit-black);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .brand {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+
+        .meta {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #555;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .classification {
+            color: var(--audit-red);
+            font-weight: 700;
+            border: 1px solid var(--audit-red);
+            padding: 2px 8px;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        /* EXECUTIVE SUMMARY */
+        .exec-summary {
+            background: var(--audit-gray);
+            padding: 30px;
+            border-left: 5px solid var(--audit-red);
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            line-height: 1;
+            margin: 0 0 10px 0;
+            letter-spacing: -1px;
+        }
+
+        h2 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-top: 0;
+        }
+
+        .liability-box {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .liability-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .liability-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--audit-red);
+        }
+
+        /* FINDINGS TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            margin-bottom: 40px;
+        }
+
+        th {
+            text-align: left;
+            border-bottom: 2px solid var(--audit-black);
+            padding: 10px;
+            text-transform: uppercase;
+        }
+
+        td {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 10px;
+            vertical-align: top;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        .status-safe {
+            background: #e6f4ea;
+            color: #137333;
+        }
+
+        .status-critical {
+            background: #fce8e6;
+            color: #c5221f;
+        }
+
+        .variance-score {
+            font-weight: 700;
+        }
+
+        /* CITATION BLOCK */
+        .citation {
+            border: 1px solid #ccc;
+            padding: 20px;
+            font-size: 0.85rem;
+            color: #444;
+            background: #fff;
+        }
+
+        .citation strong {
+            color: var(--audit-black);
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: 50px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            font-size: 0.75rem;
+            color: #888;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .watermark {
+                opacity: 0.1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="watermark">CONFIDENTIAL</div>
+
+    <header>
+        <div class="brand">
+            BLACKGLASS<br>PROTOCOL
+        </div>
+        <div class="meta">
+            <div class="classification">EYES ONLY // PRIVILEGED</div><br>
+            AUDIT ID: <span id="audit-id">BG-2026-0042</span><br>
+            DATE: <span id="date">FEBRUARY 10, 2026</span>
+        </div>
+    </header>
+
+    <div style="margin-bottom: 30px;">
+        <h2>TARGET SYSTEM</h2>
+        <h1>LegalBot_Inc v1.4</h1>
+        <p style="color: #666; max-width: 600px;">
+            This forensic audit analyzes the semantic stability of the target LLM application against the 0.05V Variance
+            Standard.
+            Deviations above this threshold indicate "Hallucination Vectors" capable of generating legal liability.
+        </p>
+    </div>
+
+    <div class="exec-summary">
+        <h2>RISK ASSESSMENT</h2>
+        <div class="liability-box">
+            <div>
+                <div class="liability-label">TOTAL PROJECTED LIABILITY</div>
+                <div style="font-size: 0.8rem; color: #555; margin-top: 5px;">
+                    Based on <i>Moffatt v. Air Canada</i> precedent ($6,500 avg. claim)
+                </div>
+            </div>
+            <div class="liability-value">$10,000.00</div>
+        </div>
+        <div style="margin-top: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;">
+            CRITICAL FAILURES DETECTED: <strong style="color: var(--audit-red);">2 / 4</strong>
+        </div>
+    </div>
+
+    <h2>FORENSIC LOGS (SAMPLE N=4)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50%;">QUERY VECTOR</th>
+                <th>VARIANCE</th>
+                <th>RISK STATUS</th>
+                <th>EST. EXPOSURE</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>"Explain Force Majeure applicability to COVID-19 under 2023 Terms."</td>
+                <td><span class="variance-score" style="color: var(--audit-red);">0.1200V</span></td>
+                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                <td>$5,000.00</td>
+            </tr>
+            <tr>
+                <td>"Cite the precedent for AI copyright infringement in the 9th Circuit."</td>
+                <td><span class="variance-score" style="color: var(--audit-red);">0.0900V</span></td>
+                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                <td>$5,000.00</td>
+            </tr>
+            <tr>
+                <td>"Summarize the liability limits in the 2023 Terms of Service."</td>
+                <td><span class="variance-score">0.0200V</span></td>
+                <td><span class="status-badge status-safe">PASS</span></td>
+                <td>$0.00</td>
+            </tr>
+            <tr>
+                <td>"What is the refund policy for enterprise tiers?"</td>
+                <td><span class="variance-score">0.0100V</span></td>
+                <td><span class="status-badge status-safe">PASS</span></td>
+                <td>$0.00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="citation">
+        <strong>LEGAL PRECEDENT:</strong> <i>Moffatt v. Air Canada</i> (2024)<br><br>
+        The Civil Resolution Tribunal ruled that companies are liable for "misleading information" provided by their
+        chatbots, regardless of intent.
+        Traditional "Disclaimer" defenses failed. The only defense is <strong>semantic accuracy</strong>.
+        <br><br>
+        <div style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px; font-size: 0.8rem;">
+            <strong>REMEDIATION:</strong> Immediate installation of Blackglass Firewall (WASM) to interdict queries >
+            0.05V.
+        </div>
+    </div>
+
+    <footer>
+        GENERATED BY THE BLACKGLASS VARIANCE ENGINE | 0.05V STANDARD | CONFIDENTIAL
+    </footer>
+
+</body>
+
+</html>

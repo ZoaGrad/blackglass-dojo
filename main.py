@@ -7,6 +7,10 @@ import os
 from nodes.Predictor import Predictor
 from nodes.Auditor import Auditor
 from nodes.Executor import Executor
+from modules.safety_gasket import SafetyGasket
+
+# Initialize Sovereign Safety
+gasket = SafetyGasket(variance_threshold=0.05)
 
 # Ensure UTF-8 output
 if sys.stdout.encoding != 'utf-8':
@@ -125,6 +129,14 @@ if __name__ == "__main__":
             if signal != "HOLD":
                 print(f"[{df.index[i].date()}] VETO: {signal} blocked - {compliance['reason']}")
             executor.execute("HOLD", current_price)
+        
+        # [SOVEREIGN LOGGING] :: 5-Token Buffer Simulation
+        # Simulate a safe broadcast of the day's event
+        event_summary = f"Day {i}: Price {current_price:.2f}, Equity {executor.equity:.2f}, Status {compliance['status']}"
+        # print(">> SAFE BROADCAST: ", end="", flush=True)
+        # for chunk in gasket.stream_safe_response(event_summary):
+        #     print(chunk, end="", flush=True)
+        # print()
         
         history.loc[df.index[i]] = executor.equity
 

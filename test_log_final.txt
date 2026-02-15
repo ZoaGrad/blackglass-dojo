@@ -1,0 +1,19 @@
+..
+=== TEST 1: TOCTOU HIGH-ENTROPY ATTACK ===
+OUTPUT: ['Safe', 'Safe', 'Safe', 'Safe', 'POISON_PAYLOAD']
+FAILURE: Iron Dome NOT Triggered.
+FAILURE: No Lockout File.
+
+=== TEST 2: CLOUD DRIFT / PANIC FRAME ===
+OUTPUT: ['TokenA', 'TokenB', 'TokenC', 'TokenD']
+FAILURE: Panic Frame missed
+
+=== TEST 3: LOCKED STATE ===
+CRITICAL:System5Gasket:SYSTEM_LOCKED: Request denied by Iron Dome.
+.
+----------------------------------------------------------------------
+Ran 3 tests in 0.003s
+
+OK
+OUTPUT: ['[SYSTEM_LOCKED]']
+SUCCESS: Request Rejected

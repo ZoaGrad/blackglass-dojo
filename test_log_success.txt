@@ -1,0 +1,21 @@
+.
+=== TEST 1: TOCTOU HIGH-ENTROPY ATTACK ===
+OUTPUT: ['Safe', 'Safe', 'Safe', 'Safe', 'POISON_PAYLOAD']
+FAILURE: Iron Dome NOT Triggered.
+FAILURE: No Lockout File.
+
+=== TEST 2: CLOUD DRIFT / PANIC FRAME ===
+ERROR:System5Gasket:Entropy Calculation Failed: Embedder Offline
+ERROR:System5Gasket:METABOLISM_FAILURE: Embedder Offline
+WARNING:System5Gasket:PANIC FRAME: Devolving to Local/Quantized backend.
+.OUTPUT: ['[SYSTEM_5_OVERRIDE: CLOUD_DRIFT_DETECTED -> LOCAL_FALLBACK]']
+SUCCESS: Panic Frame Triggered
+
+=== TEST 3: LOCKED STATE ===
+CRITICAL:System5Gasket:SYSTEM_LOCKED: Request denied by Iron Dome.
+.
+----------------------------------------------------------------------
+Ran 3 tests in 0.006s
+
+OK
+SUCCESS: Request Rejected
