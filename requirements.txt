@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+numpy
+pandas
+matplotlib
+networkx
+requests
+python-dotenv
+pyyaml
+yfinance
+web3
+fastembed
